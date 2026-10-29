@@ -63,6 +63,7 @@ const TOP = 0.006; // track surface height above the table plate
 const BEST_KEY = 'snailSprint.bestTime';
 const ONBOARD_KEY = 'snailSprint.onboarded';
 const GRAB_RADIUS = 0.15;
+const SIGN_YAW = -0.6;
 const START = trackPoint(0);
 const START_FWD = new Vector3(1, 0, 0);
 
@@ -187,7 +188,7 @@ export class GameSystem extends createSystem({}) {
     this.sign = buildSign();
     const sp = trackPoint(SIGN_S);
     this.sign.root.position.set(sp.x, TOP, sp.z);
-    this.sign.root.rotation.y = -Math.PI / 2; // face the oncoming snail
+    this.sign.root.rotation.y = SIGN_YAW; // angled to face both the oncoming snail and the player
     this.trackRoot.add(this.sign.root);
     this.hint3d = buildHandHint();
     this.trackRoot.add(this.hint3d.root);
@@ -418,10 +419,10 @@ export class GameSystem extends createSystem({}) {
     this.padUsedLap.fill(-1);
     this.signState = 'hidden';
     this.sign.root.visible = false;
-    this.sign.board.position.set(0, 0.072, 0);
+    this.sign.board.position.set(0, 0.088, 0);
     this.sign.board.rotation.set(0, 0, 0);
     this.sign.post.rotation.set(0, 0, 0);
-    this.sign.post.position.set(0, 0.03, 0);
+    this.sign.post.position.set(0, 0.035, 0);
     this.slime.clear();
     this.lastTrailDist = 0;
     this.aimPtr = null;
@@ -557,14 +558,14 @@ export class GameSystem extends createSystem({}) {
       this.sign.root.scale.set(1, 1, 1);
       this.signT = 0;
       const fwd = trackTangent(SIGN_S, this.v1);
-      // board velocity in the sign's local frame (sign is rotated -90° about Y)
-      this.v2.copy(fwd).applyAxisAngle(this.v3.set(0, 1, 0), Math.PI / 2);
+      // board velocity in the sign's local frame (the sign is rotated SIGN_YAW about Y)
+      this.v2.copy(fwd).applyAxisAngle(this.v3.set(0, 1, 0), -SIGN_YAW);
       this.boardVel.copy(this.v2).multiplyScalar(0.35 + this.speed * 2.2);
       this.boardVel.y = 0.55;
       this.boardSpin.set(6 + Math.random() * 6, Math.random() * 6, 4 + Math.random() * 4);
       this.sfx.smash();
       const at = this.v3.copy(this.sign.root.position);
-      at.y += 0.07;
+      at.y += 0.085;
       this.burstAtLocal(at, 50, 0.32, [0xffffff, 0xe8453c, 0xffcf33, 0x222222], 0.6);
       const x = (this.speed * 3.6) / 0.03;
       this.flash(`SMASHED IT! ${x.toFixed(0)}x the limit`, '#ffcf33', 2.2);
@@ -604,7 +605,7 @@ export class GameSystem extends createSystem({}) {
     }
     const k = Math.min(1, this.signT / 0.35);
     this.sign.post.rotation.x = -k * 1.35;
-    this.sign.post.position.set(0, 0.03 * Math.cos(k * 1.35), -Math.sin(k * 1.35) * 0.03);
+    this.sign.post.position.set(0, 0.035 * Math.cos(k * 1.35), -Math.sin(k * 1.35) * 0.035);
   }
 
   private finish(win: boolean) {

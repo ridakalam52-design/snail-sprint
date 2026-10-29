@@ -354,13 +354,13 @@ export function buildSign(): SignRig {
     c.fillText('km/h', 120, 264);
   });
   const post = new Mesh(
-    new CylinderGeometry(0.0015, 0.0015, 0.06, 6),
+    new CylinderGeometry(0.0018, 0.0018, 0.07, 6),
     new MeshStandardMaterial({ color: 0x9aa3ad, metalness: 0.6, roughness: 0.4 }),
   );
-  post.position.y = 0.03;
+  post.position.y = 0.035;
   root.add(post);
   const board = new Mesh(
-    new BoxGeometry(0.04, 0.05, 0.002),
+    new BoxGeometry(0.048, 0.06, 0.002),
     [
       new MeshStandardMaterial({ color: 0x222222 }),
       new MeshStandardMaterial({ color: 0x222222 }),
@@ -370,7 +370,7 @@ export function buildSign(): SignRig {
       new MeshStandardMaterial({ color: 0xb0b6bd, metalness: 0.5, roughness: 0.5 }),
     ],
   );
-  board.position.y = 0.072;
+  board.position.y = 0.088;
   root.add(board);
   return { root, board, post };
 }

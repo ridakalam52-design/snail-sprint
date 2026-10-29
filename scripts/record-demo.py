@@ -100,7 +100,7 @@ class Rec:
         if k != self.slow:
             self.slow = k
             self.pg.evaluate(f"window.__vt.dt = {1000 / FPS / k}")
-            self.ev("slowmo", factor=k)
+            self.ev("slowmo", factor=k, dist=(self.d or {}).get("dist"))
 
 
 def add(a, b, s=1.0):
@@ -132,13 +132,13 @@ def race(r, miss_at=None, slowmo=True):
         # slow motion around the speed-limit sign on the final lap
         if slowmo:
             smash_at = LAP + SIGN_S
-            r.set_slow(0.25 if smash_at - 0.07 < d["dist"] < smash_at + 0.12 else 1.0)
+            r.set_slow(0.25 if smash_at - 0.14 < d["dist"] < smash_at + 0.12 else 1.0)
         dt = 1 / FPS * r.slow
         s = d["dist"] % LAP
         lap = int(d["dist"] // LAP)
         # hand hovers just behind/above the snail, eased
         sn = d["snail"]
-        goal = [sn[0] + 0.02, sn[1] + 0.075, sn[2] + 0.085]
+        goal = [sn[0] + 0.045, sn[1] + 0.085, sn[2] + 0.11]
         cur = r.cur or goal
         r.tip([cur[i] + (goal[i] - cur[i]) * 0.18 for i in range(3)])
         tapped = False
@@ -200,7 +200,7 @@ with sync_playwright() as p:
 
     # 3) first race: a solid launch, one early pinch, slow-mo smash
     r.ev("scene", name="race1")
-    launch_snail(r, pull=0.07)
+    launch_snail(r, pull=0.08)
     race(r, miss_at=(0, 0.66), slowmo=True)
     r.set_slow(1.0)
     print("race1", r.d["state"], r.d["elapsed"], r.d["boosts"], round(time.time() - T0), flush=True)
