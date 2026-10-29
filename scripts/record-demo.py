@@ -201,7 +201,7 @@ with sync_playwright() as p:
     # 3) first race: a solid launch, one early pinch, slow-mo smash
     r.ev("scene", name="race1")
     launch_snail(r, pull=0.08)
-    race(r, miss_at=(0, 0.66), slowmo=True)
+    race(r, miss_at=(0, 0.66), slowmo=False)  # slow motion is added in post (make-video.py)
     r.set_slow(1.0)
     print("race1", r.d["state"], r.d["elapsed"], r.d["boosts"], round(time.time() - T0), flush=True)
     r.secs(3.6)

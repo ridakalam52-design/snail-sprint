@@ -122,6 +122,6 @@ Source: https://start-developer-competition-26.devpost.com/rules (read 2026-10-3
 
 ## Media files in this repo
 
-- `demo.mp4` — demo video (H.264, 1280×720, 30 fps, ~70 s, title card + emulator gameplay). Upload to YouTube/Vimeo.
+- `demo.mp4` — demo video (H.264 High + AAC, 1280×720, 30 fps, 62.9 s, title + how-to-play cards, captioned emulator gameplay, synthesised SFX/music, end card). Upload to YouTube/Vimeo.
 - `media/screenshot-1-placement.png`, `media/screenshot-2-boost.png`, `media/screenshot-3-results.png` — 1280×720 gallery screenshots.
 - `media/thumbnail.jpg` — 1500×1000 (3:2) thumbnail.

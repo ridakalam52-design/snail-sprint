@@ -13,7 +13,8 @@ FR, OUT = sys.argv[1], sys.argv[2]
 EV = json.load(open(os.path.join(FR, "events.json")))
 FPS = EV["fps"]; N = EV["frames"]; events = EV["events"]
 W, H = 1280, 720
-TITLE, END = 4.5, 6.0
+TITLE0, HOW, END = 4.5, 5.5, 7.0
+TITLE = TITLE0 + HOW
 SR = 44100
 BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 REG = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
@@ -54,7 +55,10 @@ cap(f_sign, f_smash, "Final lap: SPEED LIMIT 0.03 km/h", "A real garden snail's 
 cap(f_smash, (fins[0] if fins else f_smash + 60), "…smash it", "How many times over the limit were you?")
 cap(fins[0] if fins else None, f_r2, "60-second runs · best time saved", "Boosts, top speed and your best, right on the table")
 cap(f_r2, fins[1] if len(fins) > 1 else N, "Race again", "Chain perfect boosts to beat your best")
-cap(fins[1] if len(fins) > 1 else None, N + 1, "New best!", "Pinch to go again")
+fin_evs = [e for e in events if e["kind"] == "finish"]
+if len(fin_evs) > 1:
+    e2 = fin_evs[1]
+    cap(e2["frame"], N + 1, "New best!" if e2.get("newBest") else "Pinch to go again", f"{e2.get('time', 0):.2f} s · pinch to go again")
 
 def draw_caption(im, text, sub):
     d = ImageDraw.Draw(im, "RGBA")
@@ -116,8 +120,27 @@ endc = card(os.path.join(FR, f"f{N:05d}.jpg"), [
     ("All models, textures and sounds are generated procedurally in code.", 19, (200, 203, 224), REG),
     ("Target launch: Q1 2027", 24, YEL, BOLD)])
 
+def howto(bg_frame):
+    base = Image.open(bg_frame).convert("RGB").resize((W, H)).filter(ImageFilter.GaussianBlur(14))
+    im = Image.blend(base, Image.new("RGB", (W, H), BG), 0.72)
+    d = ImageDraw.Draw(im, "RGBA")
+    d.text((W / 2, 92), "HOW TO PLAY — hands only", font=font(BOLD, 46), fill=YEL, anchor="mt")
+    steps = [("1", "Look at your table", "The track snaps onto it. Pinch to place."),
+             ("2", "Pinch the snail, pull back, let go", "A harder pull and flick = a faster launch."),
+             ("3", "Pinch when a pad glows", "Hit the centre for PERFECT combos."),
+             ("4", "Smash the 0.03 km/h speed limit", "Two laps, 60 seconds. Beat your best.")]
+    y = 200
+    for n_, t1, t2 in steps:
+        d.ellipse([250, y - 4, 306, y + 52], fill=YEL)
+        d.text((278, y + 24), n_, font=font(BOLD, 32), fill=BG, anchor="mm")
+        d.text((330, y - 2), t1, font=font(BOLD, 32), fill=(255, 255, 255))
+        d.text((330, y + 38), t2, font=font(REG, 22), fill=CYAN)
+        y += 112
+    return im
+howc = howto(os.path.join(FR, f"f{max(1, (f_r1 or 1) + 260):05d}.jpg"))
+
 # ---------------------------------------------------------------- video
-total_frames = int(TITLE * FPS) + N + int(END * FPS)
+total_frames = None
 tmp_v = OUT + ".v.mp4"
 ff = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
                        "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-preset", "medium", "-crf", "18",
@@ -125,23 +148,44 @@ ff = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "
 def put(im): ff.stdin.write(im.convert("RGB").tobytes())
 tn = int(TITLE * FPS)
 first = Image.open(os.path.join(FR, "f00001.jpg")).convert("RGB")
-for i in range(tn):
-    k = i / tn
-    im = title if k < 0.85 else Image.blend(title, first, (k - 0.85) / 0.15)
-    put(im)
-for n in range(1, N + 1):
+t0n, hn = int(TITLE0 * FPS), int(HOW * FPS)
+for i in range(t0n):
+    k = i / t0n
+    put(title if k < 0.9 else Image.blend(title, howc, (k - 0.9) / 0.1))
+for i in range(hn):
+    k = i / hn
+    put(howc if k < 0.9 else Image.blend(howc, first, (k - 0.9) / 0.1))
+smashes = [e["frame"] for e in events if e["kind"] == "smash"]
+SLOWS = [(f - 6, f + 18) for f in smashes]
+SLOWK = 3
+def frame_img(n):
     im = Image.open(os.path.join(FR, f"f{n:05d}.jpg")).convert("RGB")
-    if im.size != (W, H): im = im.resize((W, H))
+    return im if im.size == (W, H) else im.resize((W, H))
+def deco(im, n, slow=False):
     badge(im)
     for a, b, t, s in caps:
         if a <= n < b: draw_caption(im, t, s); break
-    put(im)
+    if slow:
+        d = ImageDraw.Draw(im, "RGBA")
+        d.rounded_rectangle([W - 210, 16, W - 16, 48], radius=14, fill=(232, 69, 60, 220))
+        d.text((W - 113, 32), "SLOW MOTION", font=font(BOLD, 16), fill=(255, 255, 255), anchor="mm")
+    return im
+out_index = []  # output frame -> source frame (for audio timing)
+for n in range(1, N + 1):
+    im = frame_img(n)
+    if any(a <= n < b for a, b in SLOWS) and n < N:
+        nxt = frame_img(n + 1)
+        for k in range(SLOWK):
+            put(deco(Image.blend(im, nxt, k / SLOWK), n, True)); out_index.append(n + k / SLOWK)
+    else:
+        put(deco(im, n)); out_index.append(n)
 last = Image.open(os.path.join(FR, f"f{N:05d}.jpg")).convert("RGB")
 en = int(END * FPS)
 for i in range(en):
     k = i / en
     put(endc if k > 0.12 else Image.blend(last, endc, k / 0.12))
 ff.stdin.close(); ff.wait()
+total_frames = tn + len(out_index) + en
 
 # ---------------------------------------------------------------- audio
 dur = total_frames / FPS
@@ -171,7 +215,11 @@ def at(sec, s):
     i = int(sec * SR); j = min(len(mix), i + len(s))
     if i < len(mix): mix[i:j] += s[: j - i]
 
-def T(frame): return TITLE + frame / FPS
+import bisect
+def T(frame):
+    # map a captured frame to output time, accounting for the slow-motion stretch
+    i = bisect.bisect_left(out_index, frame)
+    return TITLE + i / FPS
 
 # music bed: soft 112 bpm bass + arpeggio, ducked at the cards' edges
 bpm = 112; beat = 60 / bpm
