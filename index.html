@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="Snail Sprint — pinch, flick and boost a cartoon snail around a race track on your real table. A mixed-reality WebXR game for Meta Quest built with the Immersive Web SDK." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%90%8C%3C/text%3E%3C/svg%3E" />
+    <title>Snail Sprint — MR tabletop race for Meta Quest</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #1b1d29; overflow: hidden; }
+      #overlay {
+        position: fixed; left: 16px; bottom: 16px; max-width: 360px; padding: 16px 18px;
+        background: rgba(20, 22, 32, 0.86); color: #fff; border-radius: 16px;
+        font: 15px/1.4 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        box-shadow: 0 8px 30px rgba(0,0,0,.35); border: 2px solid #ffcf33;
+      }
+      #overlay h1 { margin: 0 0 4px; font-size: 22px; color: #ffcf33; }
+      #overlay p { margin: 6px 0; color: #d6d8e8; }
+      #enter-xr {
+        margin-top: 8px; padding: 10px 16px; border: 0; border-radius: 999px; cursor: pointer;
+        background: #7ff0ff; color: #12141d; font-weight: 800; font-size: 15px;
+      }
+      #enter-xr:disabled { background: #555a70; color: #ddd; cursor: default; }
+      #overlay small { display: block; margin-top: 8px; color: #9ea2bb; }
+    </style>
+  </head>
+  <body>
+    <div id="scene-container"></div>
+    <div id="overlay">
+      <h1>Snail Sprint</h1>
+      <p>Pinch, pull back and flick a cartoon snail around a race track on your real table. Pinch on glowing pads to boost. Smash the speed limit!</p>
+      <button id="enter-xr">Enter Mixed Reality</button>
+      <small>No headset? Drag the snail back with your mouse and release, then click when it is on a glowing pad.</small>
+    </div>
+    <script type="module" src="/src/index.ts"></script>
+  </body>
+</html>
